@@ -1,21 +1,123 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+# =============================================================================
+# NestCast Hub — .gitignore
+# =============================================================================
 
-# Env variables
-.env*
+# -----------------------------------------------------------------------------
+# 1. Credenciales, Secretos y Variables de Entorno (Confidencial)
+# -----------------------------------------------------------------------------
+.env
+.env.*
+*.env
 !.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Compiled output
+# Claves criptográficas privadas, certificados y almacenes
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.pfx
+*.p12
+*.kdbx
+id_rsa
+id_rsa*
+id_ed25519*
+
+# Credenciales de API, tokens y cuentas de servicio
+credentials.json
+token.json
+service-account*.json
+client_secret*.json
+oauth*.json
+*secret*.json
+*.token
+firebase.json
+google-services.json
+GoogleService-Info.plist
+
+# -----------------------------------------------------------------------------
+# 2. Dependencias y Paquetes de Terceros
+# -----------------------------------------------------------------------------
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Python
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# -----------------------------------------------------------------------------
+# 3. Compilación, Cachés y Archivos Temporales de Runtime
+# -----------------------------------------------------------------------------
+# Python bytecode y cachés
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Angular & Build outputs
+.angular/
+/.angular/cache
 /dist
+/dist-ssr
 /tmp
 /out-tsc
 /bazel-out
+.sass-cache/
+/connect.lock
 
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
+# TTS y Caché de audio generado en tiempo de ejecución
+tts_cache/
+*.mp3
+*.wav
+*.ogg
+!public/assets/**
 
-# IDEs and editors
+# Base de datos local temporal y bloqueos
+data/*.tmp
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# -----------------------------------------------------------------------------
+# 4. Pruebas, Cobertura y Logs
+# -----------------------------------------------------------------------------
+/coverage
+*.lcov
+.nyc_output/
+testem.log
+/typings
+__screenshots__/
+playwright-report/
+blob-report/
+test-results/
+*.log
+
+# -----------------------------------------------------------------------------
+# 5. IDEs, Editores y Entornos de Desarrollo
+# -----------------------------------------------------------------------------
 .idea/
 .project
 .classpath
@@ -23,25 +125,34 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
+.history/*
 
-# Visual Studio Code
+# Visual Studio Code (preservar configuraciones compartidas del equipo)
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
 
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-__screenshots__/
+# Herramientas de IA y asistentes locales
+.gemini/
+.agents/
+.cursor/
+.windsurf/
+.tempmediaStorage/
+**/.tempmediaStorage/
+scratch/
 
-# System files
+# -----------------------------------------------------------------------------
+# 6. Archivos del Sistema Operativo
+# -----------------------------------------------------------------------------
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
