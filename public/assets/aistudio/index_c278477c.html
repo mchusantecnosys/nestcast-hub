@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Home Mini — Control local</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>🔊 Google Home Mini</h1>
+    <p>Empareja y controla tu altavoz desde el navegador, sin la app Google Home.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="control">Controlar</button>
+    <button class="tab" data-tab="pair">Emparejar (Wi-Fi)</button>
+  </nav>
+
+  <main>
+    <!-- ============ CONTROLAR ============ -->
+    <section id="tab-control" class="panel active">
+      <div class="card">
+        <h2>1. Buscar dispositivos</h2>
+        <p class="hint">Tu PC debe estar en la misma red Wi-Fi que el Google Home Mini.</p>
+        <div class="row">
+          <input id="known-hosts" placeholder="IP opcional (ej. 192.168.1.50) si no aparece">
+          <button id="btn-discover" class="primary">Buscar dispositivos</button>
+        </div>
+        <ul id="device-list" class="device-list"></ul>
+      </div>
+
+      <div id="control-card" class="card hidden">
+        <h2 id="dev-name">Dispositivo</h2>
+        <p class="hint" id="dev-meta"></p>
+
+        <div class="status">
+          <div><span>Estado</span><strong id="st-state">—</strong></div>
+          <div><span>App</span><strong id="st-app">—</strong></div>
+          <div><span>Reproduciendo</span><strong id="st-title">—</strong></div>
+        </div>
+
+        <label class="label">Volumen: <b id="vol-label">0</b>%</label>
+        <div class="row">
+          <input id="volume" type="range" min="0" max="100" step="1" value="0">
+          <button id="btn-mute">🔇 Silenciar</button>
+        </div>
+
+        <div class="row media">
+          <button data-action="play">▶️ Reanudar</button>
+          <button data-action="pause">⏸️ Pausa</button>
+          <button data-action="stop">⏹️ Detener</button>
+          <button data-action="quit">✖️ Cerrar app</button>
+        </div>
+
+        <form id="form-play" class="stack">
+          <label class="label">Reproducir audio desde URL</label>
+          <div class="row">
+            <input id="play-url" placeholder="https://ejemplo.com/cancion.mp3 o radio en streaming">
+            <button class="primary" type="submit">Reproducir</button>
+          </div>
+        </form>
+
+        <form id="form-say" class="stack">
+          <label class="label">Hacer que hable (texto a voz)</label>
+          <div class="row">
+            <input id="say-text" placeholder="Hola, la cena está lista">
+            <select id="say-lang">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="pt">Português</option>
+            </select>
+            <button class="primary" type="submit">Decir</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ EMPAREJAR ============ -->
+    <section id="tab-pair" class="panel">
+      <div class="card">
+        <h2>Configurar Wi-Fi de un Google Home Mini nuevo o reseteado</h2>
+        <ol class="steps">
+          <li>Restablece el altavoz (mantén pulsado el botón de reset unos 15 s) hasta que diga que está listo para configurarse.</li>
+          <li>Conecta este PC a la red Wi-Fi que crea el altavoz (se llama parecido a <code>GoogleHomeXXXX</code>).</li>
+          <li>Pulsa <b>Leer dispositivo</b> y luego <b>Buscar redes</b>.</li>
+          <li>Elige tu red, escribe la contraseña y pulsa <b>Conectar</b>.</li>
+          <li>Vuelve a conectar tu PC a tu Wi-Fi normal y ve a la pestaña <b>Controlar</b>.</li>
+        </ol>
+
+        <div class="row">
+          <input id="setup-host" value="192.168.255.249" title="IP del altavoz en modo configuración">
+          <button id="btn-setup-info">Leer dispositivo</button>
+          <button id="btn-scan">Buscar redes</button>
+        </div>
+        <div id="setup-info" class="info hidden"></div>
+
+        <form id="form-connect" class="stack">
+          <label class="label">Red Wi-Fi</label>
+          <select id="wifi-list"><option value="">— Primero pulsa "Buscar redes" —</option></select>
+          <label class="label">Contraseña de la red</label>
+          <input id="wifi-pass" type="password" autocomplete="off" placeholder="Deja vacío si la red es abierta">
+          <label class="label">Nombre del altavoz (opcional)</label>
+          <input id="device-name" placeholder="Ej. Sala">
+          <button class="primary" type="submit">Conectar</button>
+        </form>
+        <p class="hint warn">Usa la API local no oficial del dispositivo. Algunos firmwares recientes pueden rechazarla; en ese caso el mensaje de error lo indicará.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

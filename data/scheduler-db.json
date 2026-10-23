@@ -1,0 +1,117 @@
+{
+  "routines": [
+    {
+      "id": "routine-seed-1",
+      "name": "Despertador y Radio Suave",
+      "enabled": true,
+      "time": "16:35",
+      "days": [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri"
+      ],
+      "targetDeviceIds": [
+        "9385cf53-1a40-d508-df9e-25975238365b"
+      ],
+      "actions": [
+        {
+          "id": "act-1",
+          "type": "set_volume",
+          "volume": 50
+        },
+        {
+          "id": "act-2",
+          "type": "delay",
+          "delaySeconds": 1
+        },
+        {
+          "id": "act-3",
+          "type": "tts",
+          "text": "Buenos días Señor . Iniciando música relajante matutina.",
+          "lang": "es",
+          "urgent": false
+        },
+        {
+          "id": "act-4",
+          "type": "delay",
+          "delaySeconds": 3
+        },
+        {
+          "id": "act-5",
+          "type": "play_url",
+          "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+          "title": "SomaFM Groove Salad"
+        }
+      ],
+      "createdAt": "2026-10-22T21:34:42.663Z",
+      "updatedAt": "2026-10-22T21:35:14.098Z",
+      "lastRunAt": "2026-10-22T21:35:04.183Z",
+      "lastRunStatus": "success",
+      "nextRunAt": "2026-10-23T21:35:00.000Z"
+    },
+    {
+      "id": "routine-seed-2",
+      "name": "Aviso de Cierre de Clínica",
+      "enabled": false,
+      "time": "18:45",
+      "days": [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri",
+        "sat"
+      ],
+      "targetDeviceIds": [
+        "all"
+      ],
+      "actions": [
+        {
+          "id": "act-cierre-1",
+          "type": "tts",
+          "text": "Estimados pacientes y equipo: la clínica cerrará sus puertas en 15 minutos.",
+          "lang": "es",
+          "urgent": true
+        }
+      ],
+      "createdAt": "2026-10-22T18:20:01.516Z",
+      "updatedAt": "2026-10-22T18:20:01.516Z"
+    }
+  ],
+  "dnd": {
+    "enabled": true,
+    "startTime": "22:00",
+    "endTime": "07:00",
+    "maxVolume": 20
+  },
+  "timers": [],
+  "executionHistory": [
+    {
+      "id": "exec-1792704914107-dd481",
+      "routineId": "routine-seed-1",
+      "routineName": "Despertador y Radio Suave",
+      "executedAt": "2026-10-22T21:35:04.183Z",
+      "status": "success",
+      "details": "Bedroom: set_volume OK; Espera 1s; tts OK; Espera 3s; play_url OK"
+    },
+    {
+      "id": "exec-1792701010098-581n6",
+      "routineId": "routine-seed-1",
+      "routineName": "Despertador y Radio Suave",
+      "executedAt": "2026-10-22T20:30:00.263Z",
+      "status": "success",
+      "details": "Bedroom: set_volume OK; Espera 1s; tts OK; Espera 3s; play_url OK"
+    },
+    {
+      "id": "exec-1792693346939-qggzb",
+      "routineId": "routine-dnd-test",
+      "routineName": "Rutina Nocturna",
+      "executedAt": "2026-10-22T18:22:26.900Z",
+      "status": "success",
+      "details": "Device-mock-dev-1: set_volume OK; TTS omitido por modo No Molestar; tts OK"
+    }
+  ],
+  "errorNotifications": []
+}

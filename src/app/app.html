@@ -1,0 +1,869 @@
+<div
+  class="min-h-screen flex flex-col bg-[var(--chalk)] text-[var(--ink)] antialiased transition-colors duration-200"
+  [class.dark]="hub.darkMode()"
+  [attr.data-theme]="hub.darkMode() ? 'dark' : 'light'"
+>
+  <!-- Top Bar: Strictly 3 clean zones with 8px radius controls -->
+  <header class="w-full border-b border-[var(--line)] bg-[var(--panel)] px-4 sm:px-8 py-3.5 transition-colors sticky top-0 z-40">
+    <div class="max-w-[1180px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      <!-- Zone 1: Wordmark & Navigation -->
+      <div class="flex items-center gap-6">
+        <a
+          href="#top"
+          (click)="$event.preventDefault(); hub.activeTab.set('control')"
+          class="text-xl font-bold tracking-tight text-[var(--ink)] hover:opacity-90 select-none whitespace-nowrap"
+        >
+          NestCast Hub
+        </a>
+
+        <!-- Secondary screen switcher -->
+        <nav class="hidden sm:flex items-center gap-1 text-xs font-semibold" aria-label="Navegación principal">
+          <button
+            type="button"
+            (click)="hub.activeTab.set('control')"
+            class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer select-none"
+            [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'control'"
+            [class.text-[var(--accent)]]="hub.activeTab() === 'control'"
+            [class.text-[var(--muted)]]="hub.activeTab() !== 'control'"
+            [class.hover:text-[var(--ink)]]="hub.activeTab() !== 'control'"
+          >
+            Altavoces
+          </button>
+          <button
+            type="button"
+            (click)="hub.activeTab.set('automation')"
+            class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 select-none"
+            [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'automation'"
+            [class.text-[var(--accent)]]="hub.activeTab() === 'automation'"
+            [class.text-[var(--muted)]]="hub.activeTab() !== 'automation'"
+            [class.hover:text-[var(--ink)]]="hub.activeTab() !== 'automation'"
+          >
+            <span>Automatización completa</span>
+            @if (automation.unreadErrorsCount() > 0) {
+              <span class="w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse"></span>
+            }
+          </button>
+          <button
+            type="button"
+            (click)="hub.activeTab.set('bridge')"
+            class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer select-none"
+            [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'bridge'"
+            [class.text-[var(--accent)]]="hub.activeTab() === 'bridge'"
+            [class.text-[var(--muted)]]="hub.activeTab() !== 'bridge'"
+            [class.hover:text-[var(--ink)]]="hub.activeTab() !== 'bridge'"
+          >
+            Puente LAN
+          </button>
+        </nav>
+      </div>
+
+      <!-- Zone 3: DND switch, Theme toggle, Pairing action -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <!-- Switch No molestar with hours & volume caption -->
+        <div class="flex items-center gap-2.5">
+          <div class="hidden md:flex flex-col text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              @if (automation.dndConfig().enabled) {
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  [class.bg-[var(--accent)]]="automation.isDndActive()"
+                  [class.bg-[var(--muted)]]="!automation.isDndActive()"
+                ></span>
+              }
+              <span class="text-xs font-semibold text-[var(--ink)] leading-tight">No molestar</span>
+            </div>
+            <span class="text-[11px] text-[var(--muted)] tabular-nums">
+              {{ automation.dndConfig().startTime }} - {{ automation.dndConfig().endTime }}, máx. {{ automation.dndConfig().maxVolume }}
+              @if (automation.dndConfig().enabled) {
+                <span class="font-medium" [class.text-[var(--accent)]]="automation.isDndActive()">
+                  · {{ automation.isDndActive() ? 'activo ahora' : 'en espera' }}
+                </span>
+              }
+            </span>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="automation.dndConfig().enabled"
+            (click)="toggleDnd()"
+            class="hub-switch shrink-0"
+            title="Activar o desactivar No molestar"
+            aria-label="Activar o desactivar No molestar"
+          >
+            <span class="hub-switch-thumb"></span>
+          </button>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button
+          type="button"
+          (click)="hub.toggleDarkMode()"
+          aria-label="Cambiar tema claro u oscuro"
+          class="p-2 rounded-lg border border-[var(--edge)] hover:bg-[var(--chalk)] transition-colors text-[var(--ink)] cursor-pointer"
+        >
+          <mat-icon class="!text-lg !w-4.5 !h-4.5 leading-none">
+            {{ hub.darkMode() ? 'light_mode' : 'dark_mode' }}
+          </mat-icon>
+        </button>
+
+        <!-- Primary Action: Emparejar altavoz -->
+        <button
+          type="button"
+          (click)="openPairingDialog()"
+          class="inline-flex items-center justify-center gap-2 min-h-[40px] px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:opacity-95 transition-opacity cursor-pointer whitespace-nowrap shadow-xs"
+        >
+          <mat-icon class="!text-base !w-4 !h-4 leading-none">add</mat-icon>
+          <span>Emparejar altavoz</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile View Switcher (Only visible under sm breakpoint) -->
+  <div class="sm:hidden flex items-center justify-between px-4 py-2 bg-[var(--panel)] border-b border-[var(--line)] text-xs font-medium">
+    <button
+      type="button"
+      (click)="hub.activeTab.set('control')"
+      class="px-2.5 py-1 rounded-md"
+      [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'control'"
+      [class.text-[var(--accent)]]="hub.activeTab() === 'control'"
+    >
+      Altavoces
+    </button>
+    <button
+      type="button"
+      (click)="hub.activeTab.set('automation')"
+      class="px-2.5 py-1 rounded-md flex items-center gap-1"
+      [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'automation'"
+      [class.text-[var(--accent)]]="hub.activeTab() === 'automation'"
+    >
+      <span>Automatización</span>
+      @if (automation.unreadErrorsCount() > 0) {
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--danger)]"></span>
+      }
+    </button>
+    <button
+      type="button"
+      (click)="hub.activeTab.set('bridge')"
+      class="px-2.5 py-1 rounded-md"
+      [class.bg-[var(--accent-soft)]]="hub.activeTab() === 'bridge'"
+      [class.text-[var(--accent)]]="hub.activeTab() === 'bridge'"
+    >
+      Puente LAN
+    </button>
+  </div>
+
+  <!-- Primary Main View -->
+  <main class="flex-1 max-w-[1180px] w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+    @switch (hub.activeTab()) {
+      @case ('control') {
+        <!-- 1. The Day Timeline: 24h strip at top -->
+        <app-day-timeline />
+
+        <!-- 2. Two-Column Workspace Layout (Desktop: fluid + 340px; Mobile: single column) -->
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
+          <!-- Left Column: Single Speaker Panel with Hairlines -->
+          <section class="space-y-3" aria-labelledby="speakers-heading">
+            <div class="flex items-center justify-between">
+              <h2 id="speakers-heading" class="text-xl font-bold tracking-tight text-[var(--ink)]">
+                Altavoces
+              </h2>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-[var(--muted)] font-medium tabular-nums mr-1">
+                  {{ hub.devices().length }} {{ hub.devices().length === 1 ? 'conectado' : 'conectados' }}
+                </span>
+                <button
+                  type="button"
+                  (click)="openPairingDialog('lan')"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--edge)] hover:bg-[var(--chalk)] text-[var(--ink)] text-xs font-semibold cursor-pointer transition-colors"
+                  title="Buscar altavoces dentro de la red local"
+                >
+                  <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none text-[var(--accent)]">radar</mat-icon>
+                  <span>Buscar en red</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="runDiscovery()"
+                  [disabled]="hub.discovering()"
+                  class="p-1.5 rounded-lg border border-[var(--edge)] hover:bg-[var(--chalk)] text-[var(--ink)] transition-colors cursor-pointer"
+                  title="Escanear altavoces en la red"
+                  aria-label="Escanear altavoces en la red"
+                >
+                  <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none" [class.animate-spin]="hub.discovering()">
+                    sync
+                  </mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- The Single White Panel -->
+            <div class="rounded-xl border border-[var(--line)] bg-[var(--panel)] shadow-xs divide-y divide-[var(--line)] overflow-hidden">
+              @if (hub.devices().length === 0) {
+                <div class="p-8 text-center space-y-3">
+                  <p class="text-sm text-[var(--muted)]">
+                    No se encontró ningún altavoz en la red local.
+                  </p>
+                  <button
+                    type="button"
+                    (click)="openPairingDialog()"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-xs font-semibold hover:opacity-95 cursor-pointer"
+                  >
+                    <mat-icon class="!text-base !w-4 !h-4 leading-none">add</mat-icon>
+                    <span>Emparejar altavoz</span>
+                  </button>
+                </div>
+              } @else {
+                @for (dev of hub.devices(); track dev.id) {
+                  <!-- Individual Speaker Row -->
+                  <div
+                    class="p-5 sm:p-6 transition-colors"
+                    [class.bg-[var(--accent-soft)]/20]="dev.status?.player_state === 'PLAYING'"
+                  >
+                    <!-- Top Line: Name, Model, Host, Equalizer & Status -->
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <h3 class="text-base sm:text-lg font-bold text-[var(--ink)] leading-snug">
+                            {{ dev.name }}
+                          </h3>
+                          @if (dev.status?.player_state === 'PLAYING') {
+                            <span class="eq ml-1" title="Reproduciendo sonido">
+                              <i></i><i></i><i></i>
+                            </span>
+                          }
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-[var(--muted)] mt-0.5">
+                          <span>{{ dev.model }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span class="font-mono tabular-nums">{{ dev.host }}</span>
+                        </div>
+                      </div>
+
+                      <div class="text-right">
+                        @if (dev.status?.player_state === 'PLAYING') {
+                          <span class="text-xs font-semibold text-[var(--accent)]">
+                            Reproduciendo
+                          </span>
+                          @if (dev.status?.title) {
+                            <p class="text-[11px] text-[var(--muted)] max-w-[220px] truncate" [title]="dev.status?.title">
+                              {{ dev.status?.title }}
+                            </p>
+                          }
+                        } @else if (dev.status?.muted) {
+                          <span class="text-xs font-semibold text-[var(--edge)]">
+                            Silenciado
+                          </span>
+                        } @else {
+                          <span class="text-xs text-[var(--muted)]">
+                            Listo para transmitir
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Volume & Slider Line -->
+                    <div class="flex items-center gap-4 sm:gap-6 mt-4">
+                      <!-- Big condensed volume numeral (.font-level) -->
+                      <div
+                        class="font-level w-[4.2rem] shrink-0 text-right select-none"
+                        [class.text-[var(--accent)]]="dev.status?.player_state === 'PLAYING' && !dev.status?.muted"
+                        [class.line-through]="dev.status?.muted"
+                        [class.text-[var(--muted)]]="dev.status?.muted"
+                      >
+                        {{ dev.status?.volume ?? 40 }}
+                      </div>
+
+                      <!-- Wide slider with dynamic --fill and DND limit mark -->
+                      <div class="flex-1">
+                        <div class="nest-slider-container">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            [value]="dev.status?.volume ?? 40"
+                            [style.--fill]="(dev.status?.volume ?? 40) + '%'"
+                            (input)="onSpeakerVolumeInput(dev.id, $event)"
+                            class="nest-slider"
+                            [attr.aria-label]="'Volumen de ' + dev.name"
+                          />
+                          @if (automation.isDndActive()) {
+                            <span
+                              class="slider-limit"
+                              [style.left.%]="automation.dndConfig().maxVolume"
+                              [title]="'Límite de ' + automation.dndConfig().maxVolume + ' por No molestar activo'"
+                            ></span>
+                          }
+                        </div>
+
+                        @if (automation.isDndActive() && (dev.status?.volume ?? 40) >= automation.dndConfig().maxVolume) {
+                          <p class="text-[11px] text-[var(--danger)] font-medium mt-0.5">
+                            Límite de {{ automation.dndConfig().maxVolume }} por No molestar activo
+                          </p>
+                        }
+                      </div>
+
+                      <!-- Transport actions (Buttons with 8px radius, 44px min height) -->
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          (click)="togglePlayPause(dev)"
+                          class="min-h-[44px] px-3.5 py-2 rounded-lg border border-[var(--edge)] text-xs font-semibold text-[var(--ink)] hover:bg-[var(--chalk)] transition-colors cursor-pointer"
+                        >
+                          {{ dev.status?.player_state === 'PLAYING' ? 'Pausar' : 'Reproducir' }}
+                        </button>
+
+                        <button
+                          type="button"
+                          (click)="hub.toggleMute(dev.id)"
+                          [attr.aria-pressed]="dev.status?.muted"
+                          class="min-h-[44px] px-3.5 py-2 rounded-lg border text-xs font-semibold transition-colors cursor-pointer"
+                          [class.bg-[var(--accent-soft)]]="dev.status?.muted"
+                          [class.border-[var(--accent)]]="dev.status?.muted"
+                          [class.text-[var(--accent)]]="dev.status?.muted"
+                          [class.border-[var(--edge)]]="!dev.status?.muted"
+                          [class.text-[var(--ink)]]="!dev.status?.muted"
+                          [class.hover:bg-[var(--chalk)]]="!dev.status?.muted"
+                        >
+                          {{ dev.status?.muted ? 'Silenciado' : 'Silenciar' }}
+                        </button>
+
+                        <button
+                          type="button"
+                          (click)="confirmRemoveDevice($event, dev)"
+                          title="Quitar {{ dev.name }} del Hub"
+                          class="min-h-[44px] p-2 rounded-lg text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--chalk)] transition-colors cursor-pointer"
+                          [attr.aria-label]="'Quitar ' + dev.name + ' de la lista'"
+                        >
+                          <mat-icon class="!text-base !w-4 !h-4 leading-none">close</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Quick Preset Emisoras for this Speaker -->
+                    <div class="mt-4 pt-3 border-t border-[var(--line)]/50 flex flex-wrap items-center gap-2 text-xs">
+                      <span class="text-[11px] text-[var(--muted)] font-medium">Transmitir emisora:</span>
+                      @for (preset of hub.presets(); track preset.id) {
+                        <button
+                          type="button"
+                          (click)="playPresetOnSpeaker(dev, preset)"
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--line)] hover:border-[var(--edge)] bg-[var(--chalk)]/60 text-[11px] font-medium text-[var(--ink)] hover:bg-[var(--chalk)] transition-colors cursor-pointer"
+                          [title]="preset.subtitle"
+                        >
+                          <mat-icon class="!text-xs !w-3 !h-3 leading-none text-[var(--accent)]">{{ preset.icon }}</mat-icon>
+                          <span>{{ preset.title }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </section>
+
+          <!-- Right Column: 340px Fixed on Desktop -->
+          <aside class="space-y-6 w-full lg:w-[340px] shrink-0">
+            <!-- 1. Hablar por los altavoces -->
+            <section
+              class="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-xs"
+              aria-labelledby="quick-speak-heading"
+            >
+              <h2 id="quick-speak-heading" class="text-sm font-bold text-[var(--ink)] mb-3">
+                Hablar por los altavoces
+              </h2>
+
+              <label for="quick-msg-input" class="block text-xs font-medium text-[var(--muted)] mb-1.5">
+                Mensaje
+              </label>
+              <textarea
+                id="quick-msg-input"
+                [formControl]="quickMessageControl"
+                rows="3"
+                placeholder="Hola, bienvenidos a la sala..."
+                class="w-full rounded-lg border border-[var(--edge)] bg-transparent p-2.5 text-sm text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
+              ></textarea>
+
+              <fieldset class="mt-3.5">
+                <div class="flex items-center justify-between mb-2">
+                  <legend class="text-xs font-medium text-[var(--muted)]">Enviar a</legend>
+                  <button
+                    type="button"
+                    (click)="selectAllSpeakers()"
+                    class="text-[11px] text-[var(--accent)] font-semibold hover:underline cursor-pointer"
+                  >
+                    Seleccionar todos
+                  </button>
+                </div>
+
+                <div class="space-y-1.5">
+                  @for (dev of hub.devices(); track dev.id) {
+                    <label class="flex items-center gap-2.5 text-xs text-[var(--ink)] cursor-pointer py-1 select-none">
+                      <input
+                        type="checkbox"
+                        [checked]="isSpeakerSelected(dev.id)"
+                        (change)="toggleSpeakerSelection(dev.id)"
+                        class="w-4 h-4 rounded border-[var(--edge)] text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
+                      />
+                      <span class="font-medium truncate">{{ dev.name }}</span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
+
+              <button
+                type="button"
+                (click)="sendQuickMessage()"
+                [disabled]="!quickMessageControl.value.trim() || hub.busyAction() === 'say'"
+                class="mt-4 w-full inline-flex items-center justify-center gap-2 min-h-[44px] rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:opacity-95 transition-opacity cursor-pointer disabled:opacity-50"
+              >
+                <mat-icon class="!text-base !w-4 !h-4 leading-none">record_voice_over</mat-icon>
+                <span>{{ hub.busyAction() === 'say' ? 'Enviando...' : 'Enviar mensaje' }}</span>
+              </button>
+
+              <!-- Live Region Confirmation -->
+              @if (quickMessageStatus(); as statusMsg) {
+                <div
+                  role="status"
+                  aria-live="polite"
+                  class="mt-3 p-2.5 rounded-lg bg-[var(--ok)]/10 border border-[var(--ok)]/30 text-xs font-medium text-[var(--ok)] flex items-center gap-2"
+                >
+                  <mat-icon class="!text-base !w-4 !h-4 leading-none shrink-0">check_circle</mat-icon>
+                  <span>{{ statusMsg }}</span>
+                </div>
+              }
+            </section>
+
+            <!-- 2. Próximas rutinas -->
+            <section
+              class="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-xs"
+              aria-labelledby="upcoming-routines-heading"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <h2 id="upcoming-routines-heading" class="text-sm font-bold text-[var(--ink)]">
+                  Próximas rutinas
+                </h2>
+                <button
+                  type="button"
+                  (click)="hub.activeTab.set('automation')"
+                  class="text-[11px] text-[var(--accent)] font-semibold hover:underline cursor-pointer"
+                >
+                  Ver todas
+                </button>
+              </div>
+
+              @if (upcomingRoutines().length === 0) {
+                <p class="text-xs text-[var(--muted)] py-2">
+                  No hay rutinas programadas activas para hoy.
+                </p>
+              } @else {
+                <ul class="divide-y divide-[var(--line)]" role="list">
+                  @for (r of upcomingRoutines(); track r.id) {
+                    <li class="py-2.5 flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <strong class="text-xs font-bold text-[var(--ink)] tabular-nums">{{ r.time }}</strong>
+                          <span class="text-xs font-medium text-[var(--ink)] truncate">{{ r.name }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] text-[var(--muted)] mt-0.5">
+                          <span class="font-medium text-[var(--accent)]">{{ r.relativeTime }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span class="truncate">{{ getSpeakerNamesForRoutine(r) }}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        [attr.aria-checked]="r.enabled"
+                        (click)="automation.toggleRoutine(r.id, !r.enabled)"
+                        class="hub-switch shrink-0"
+                        [attr.aria-label]="'Alternar rutina ' + r.name"
+                      >
+                        <span class="hub-switch-thumb"></span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+
+            <!-- 3. Temporizadores activos (si existen) -->
+            @if (activeTimersList().length > 0) {
+              <section
+                class="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-xs"
+                aria-labelledby="active-timers-heading"
+              >
+                <h2 id="active-timers-heading" class="text-sm font-bold text-[var(--ink)] mb-3">
+                  Temporizadores activos
+                </h2>
+                <ul class="divide-y divide-[var(--line)]" role="list">
+                  @for (timer of activeTimersList(); track timer.id) {
+                    <li class="py-2 flex items-center justify-between gap-3">
+                      <div>
+                        <div class="text-xs font-semibold text-[var(--ink)]">{{ timer.label }}</div>
+                        <div class="text-[11px] text-[var(--muted)]">
+                          {{ getSpeakerNameById(timer.targetDeviceId) }}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span class="font-mono text-sm font-bold text-[var(--accent)] tabular-nums">
+                          {{ timer.remainingText }}
+                        </span>
+                        <button
+                          type="button"
+                          (click)="automation.cancelTimer(timer.id)"
+                          class="p-1 rounded-md text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--chalk)] transition-colors cursor-pointer"
+                          title="Cancelar temporizador"
+                          aria-label="Cancelar temporizador"
+                        >
+                          <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none">close</mat-icon>
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </aside>
+        </div>
+      }
+      @case ('automation') {
+        <app-automation-panel />
+      }
+      @case ('bridge') {
+        <app-local-bridge />
+      }
+      @case ('pair') {
+        <app-wifi-wizard />
+      }
+    }
+  </main>
+
+  <!-- Native Pairing Dialog ("Emparejar altavoz") -->
+  <dialog
+    #pairingDialog
+    id="pairing-dialog"
+    (cancel)="closePairingDialog()"
+    [class.dark]="hub.darkMode()"
+    [attr.data-theme]="hub.darkMode() ? 'dark' : 'light'"
+    class="m-auto rounded-xl border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] p-6 shadow-xl max-w-lg w-full backdrop:bg-black/45 backdrop:backdrop-blur-xs"
+  >
+    <div class="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+      <h2 class="text-lg font-bold text-[var(--ink)]">
+        Buscar y emparejar altavoces
+      </h2>
+      <button
+        type="button"
+        (click)="closePairingDialog()"
+        class="p-1 rounded-lg text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--chalk)] cursor-pointer"
+        aria-label="Cerrar diálogo"
+      >
+        <mat-icon class="!text-base !w-4 !h-4 leading-none">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="flex items-center gap-1 p-1 mt-4 rounded-xl border border-[var(--line)] bg-[var(--chalk)] text-xs font-semibold">
+      <button
+        type="button"
+        (click)="selectPairingTab('lan')"
+        class="flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+        [class.bg-[var(--panel)]]="pairingTab() === 'lan'"
+        [class.text-[var(--accent)]]="pairingTab() === 'lan'"
+        [class.shadow-xs]="pairingTab() === 'lan'"
+        [class.text-[var(--muted)]]="pairingTab() !== 'lan'"
+      >
+        <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none">radar</mat-icon>
+        <span>En mi red local (Wi-Fi)</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="selectPairingTab('hotspot')"
+        class="flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+        [class.bg-[var(--panel)]]="pairingTab() === 'hotspot'"
+        [class.text-[var(--accent)]]="pairingTab() === 'hotspot'"
+        [class.shadow-xs]="pairingTab() === 'hotspot'"
+        [class.text-[var(--muted)]]="pairingTab() !== 'hotspot'"
+      >
+        <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none">wifi_tethering</mat-icon>
+        <span>Nuevo altavoz (Hotspot)</span>
+      </button>
+    </div>
+
+    @if (pairingTab() === 'lan') {
+      <!-- TAB 1: Búsqueda en red local -->
+      <div class="mt-4 space-y-4">
+        <p class="text-xs text-[var(--muted)]">
+          Escanea tu red local automáticamente para encontrar todos los Google Home Mini y Nest Mini activos.
+        </p>
+
+        <!-- Subnet bar & Scan trigger -->
+        <div class="flex items-center gap-2">
+          <div class="flex-1 min-w-0">
+            <label for="subnet-input" class="block text-[11px] font-semibold text-[var(--muted)] mb-1">
+              Rango de red (Subred local)
+            </label>
+            <input
+              id="subnet-input"
+              type="text"
+              [formControl]="customSubnetControl"
+              placeholder="192.168.18."
+              class="w-full rounded-lg border border-[var(--edge)] bg-transparent px-3 py-2 text-xs font-mono tabular-nums text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            />
+          </div>
+          <div class="shrink-0 self-end">
+            <button
+              type="button"
+              (click)="scanLanSpeakers()"
+              [disabled]="hub.isScanningSubnet()"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:opacity-95 transition-opacity cursor-pointer disabled:opacity-50"
+            >
+              <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none" [class.animate-spin]="hub.isScanningSubnet()">
+                {{ hub.isScanningSubnet() ? 'refresh' : 'search' }}
+              </mat-icon>
+              <span>{{ hub.isScanningSubnet() ? 'Escaneando...' : 'Escanear red' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Discovered Speakers List -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-[var(--ink)]">
+            <span>Altavoces encontrados en la red</span>
+            <span class="text-[11px] text-[var(--muted)] font-mono tabular-nums">
+              {{ hub.discoveredLanSpeakers().length }} detectado(s)
+            </span>
+          </div>
+
+          <div class="max-h-56 overflow-y-auto rounded-lg border border-[var(--line)] p-2 space-y-2 divide-y divide-[var(--line)]">
+            @if (hub.isScanningSubnet()) {
+              <div class="py-8 text-center text-xs text-[var(--muted)] space-y-2">
+                <mat-icon class="animate-spin text-[var(--accent)] !text-xl !w-5 !h-5 leading-none">radar</mat-icon>
+                <p>Realizando barrido de 254 direcciones en la subred...</p>
+              </div>
+            } @else if (hub.discoveredLanSpeakers().length === 0) {
+              <div class="py-6 text-center text-xs text-[var(--muted)] space-y-2">
+                <p>No se encontraron altavoces con la subred indicada.</p>
+                <p class="text-[11px]">Verifica que tu PC y el altavoz estén en la misma red Wi-Fi y pulsa "Escanear red".</p>
+              </div>
+            } @else {
+              @for (speaker of hub.discoveredLanSpeakers(); track speaker.id) {
+                <div class="pt-2 first:pt-0 flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-2 h-2 rounded-full bg-[var(--ok)] shrink-0"></span>
+                      <span class="font-semibold text-xs text-[var(--ink)] truncate">{{ speaker.name }}</span>
+                    </div>
+                    <div class="text-[11px] text-[var(--muted)] flex items-center gap-2 mt-0.5">
+                      <span class="font-mono tabular-nums">{{ speaker.ip }}</span>
+                      <span>·</span>
+                      <span>{{ speaker.model }}</span>
+                      @if (speaker.ssid) {
+                        <span>·</span>
+                        <span class="truncate">Wi-Fi: {{ speaker.ssid }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      (click)="pingDiscoveredSpeaker(speaker)"
+                      [disabled]="hub.pingingDeviceId() === (speaker.host || speaker.ip)"
+                      class="p-2 rounded-lg border border-[var(--edge)] hover:bg-[var(--chalk)] text-[var(--ink)] transition-colors cursor-pointer"
+                      title="Hacer sonar un timbre corto para identificar este altavoz"
+                      aria-label="Hacer sonar altavoz"
+                    >
+                      <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none text-[var(--accent)]" [class.animate-bounce]="hub.pingingDeviceId() === (speaker.host || speaker.ip)">
+                        notifications_active
+                      </mat-icon>
+                    </button>
+
+                    @if (hub.isSpeakerConnected(speaker)) {
+                      <button
+                        type="button"
+                        (click)="linkDiscoveredSpeaker(speaker)"
+                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--ok)]/10 text-[var(--ok)] text-xs font-semibold select-none border border-[var(--ok)]/20 hover:bg-[var(--ok)]/20 transition-colors cursor-pointer"
+                        title="Este altavoz ya está conectado al Hub"
+                      >
+                        <mat-icon class="!text-xs !w-3.5 !h-3.5 leading-none">check_circle</mat-icon>
+                        <span>Conectado</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="linkDiscoveredSpeaker(speaker)"
+                        class="px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:opacity-95 transition-opacity cursor-pointer shadow-xs"
+                      >
+                        <span>Vincular</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- TAB 2: Configuración de altavoz nuevo vía Hotspot -->
+      <div class="mt-4 space-y-3">
+        <p class="text-xs text-[var(--muted)]">
+          Para altavoces nuevos o restablecidos: conecta tu PC al Wi-Fi temporal <code>GoogleHomeXXXX</code> del altavoz.
+        </p>
+
+        <div>
+          <label for="hotspot-host-input" class="block text-[11px] font-semibold text-[var(--muted)] mb-1">
+            Dirección del Hotspot
+          </label>
+          <input
+            id="hotspot-host-input"
+            type="text"
+            [formControl]="hotspotHostControl"
+            placeholder="192.168.255.249"
+            class="w-full rounded-lg border border-[var(--edge)] bg-transparent px-3 py-2 text-xs font-mono tabular-nums text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          />
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <label class="block text-xs font-semibold text-[var(--ink)]">
+            Red Wi-Fi de destino
+          </label>
+          <button
+            type="button"
+            (click)="scanNetworks()"
+            [disabled]="isScanningNetworks()"
+            class="text-[11px] text-[var(--accent)] font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+          >
+            <mat-icon class="!text-xs !w-3 !h-3 leading-none" [class.animate-spin]="isScanningNetworks()">refresh</mat-icon>
+            <span>{{ isScanningNetworks() ? 'Buscando redes...' : 'Buscar redes' }}</span>
+          </button>
+        </div>
+
+        <div class="max-h-40 overflow-y-auto rounded-lg border border-[var(--line)] p-2 space-y-1">
+          @if (isScanningNetworks()) {
+            <div class="py-6 text-center text-xs text-[var(--muted)]">
+              <mat-icon class="animate-spin text-[var(--accent)] !text-lg !w-4.5 !h-4.5 leading-none mb-1">rotate_right</mat-icon>
+              <p>Escaneando redes Wi-Fi cercanas...</p>
+            </div>
+          } @else if (hub.scannedNetworks().length === 0) {
+            <div class="py-4 text-center text-xs text-[var(--muted)]">
+              No se han detectado redes. Haz clic en "Buscar redes".
+            </div>
+          } @else {
+            @for (net of hub.scannedNetworks(); track net.ssid) {
+              <label
+                class="flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer hover:bg-[var(--chalk)] transition-colors"
+                [class.bg-[var(--accent-soft)]]="selectedWifiSsid() === net.ssid"
+              >
+                <div class="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="wifiNetwork"
+                    [value]="net.ssid"
+                    [checked]="selectedWifiSsid() === net.ssid"
+                    (change)="selectedWifiSsid.set(net.ssid)"
+                    class="w-4 h-4 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
+                  />
+                  <span class="font-medium text-[var(--ink)]">{{ net.ssid }}</span>
+                </div>
+                <span class="text-[11px] text-[var(--muted)] tabular-nums">
+                  {{ net.signalQuality }} ({{ net.signal }} dBm)
+                </span>
+              </label>
+            }
+          }
+        </div>
+
+        <!-- Password input -->
+        <div>
+          <label for="pairing-password" class="block text-xs font-semibold text-[var(--ink)] mb-1">
+            Contraseña de Wi-Fi
+          </label>
+          <input
+            id="pairing-password"
+            type="password"
+            autocomplete="off"
+            [formControl]="wifiPasswordControl"
+            placeholder="Escribe la contraseña de la red"
+            class="w-full rounded-lg border border-[var(--edge)] bg-transparent p-2.5 text-xs text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          />
+        </div>
+
+        <!-- Speaker Name input -->
+        <div>
+          <label for="pairing-name" class="block text-xs font-semibold text-[var(--ink)] mb-1">
+            Nombre del altavoz
+          </label>
+          <input
+            id="pairing-name"
+            type="text"
+            [formControl]="speakerNameControl"
+            placeholder="Ej. Sala de Estar, Cocina, Consultorio 2"
+            class="w-full rounded-lg border border-[var(--edge)] bg-transparent p-2.5 text-xs text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          />
+        </div>
+      </div>
+    }
+
+    <!-- Feedback notifications -->
+    @if (pairingError()) {
+      <div class="mt-4 p-2.5 rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 text-xs text-[var(--danger)] font-medium flex items-center gap-2">
+        <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none shrink-0">error_outline</mat-icon>
+        <span>{{ pairingError() }}</span>
+      </div>
+    }
+
+    @if (pairingSuccess()) {
+      <div class="mt-4 p-2.5 rounded-lg bg-[var(--ok)]/10 border border-[var(--ok)]/30 text-xs text-[var(--ok)] font-medium flex items-center gap-2">
+        <mat-icon class="!text-sm !w-3.5 !h-3.5 leading-none shrink-0">check_circle</mat-icon>
+        <span>{{ pairingSuccess() }}</span>
+      </div>
+    }
+
+    <!-- Actions (8px radius, min 44px height) -->
+    <div class="mt-6 pt-4 border-t border-[var(--line)] flex items-center justify-end gap-3">
+      <button
+        type="button"
+        (click)="closePairingDialog()"
+        class="min-h-[44px] px-4 py-2 rounded-lg border border-[var(--edge)] text-xs font-semibold text-[var(--ink)] hover:bg-[var(--chalk)] transition-colors cursor-pointer"
+      >
+        Cerrar
+      </button>
+
+      @if (pairingTab() === 'hotspot') {
+        <button
+          type="button"
+          (click)="submitPairing()"
+          [disabled]="isConnecting() || !selectedWifiSsid()"
+          class="min-h-[44px] px-5 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:opacity-95 transition-opacity cursor-pointer disabled:opacity-50"
+        >
+          <span>{{ isConnecting() ? 'Conectando altavoz...' : 'Conectar altavoz' }}</span>
+        </button>
+      }
+    </div>
+  </dialog>
+
+  <!-- Global Toast Notification -->
+  @if (hub.toast(); as toastMsg) {
+    <div
+      role="status"
+      aria-live="polite"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-xl px-4 py-3 text-xs font-semibold text-white shadow-md transition-transform"
+      [class.bg-[var(--ok)]]="toastMsg.type === 'success'"
+      [class.bg-[var(--danger)]]="toastMsg.type === 'error'"
+      [class.bg-[var(--ink)]]="toastMsg.type === 'info'"
+    >
+      <mat-icon class="!text-base !w-4 !h-4 leading-none">
+        {{
+          toastMsg.type === 'success'
+            ? 'check_circle'
+            : toastMsg.type === 'error'
+              ? 'error_outline'
+              : 'info'
+        }}
+      </mat-icon>
+      <span>{{ toastMsg.text }}</span>
+    </div>
+  }
+</div>

@@ -1,0 +1,6 @@
+{
+  "summary":  "Plan de implementación para la Fase 0 del Hub Web de Control y Emparejamiento de Google Home Mini / Nest Mini, incluyendo arquitectura híbrida (simulador interactivo + puente local Python descargable), diseño estilo Nest Hub con tema adaptable, presets de audio/emisoras, historial/favoritos de TTS y asistente paso a paso de configuración Wi-Fi.",
+  "updatedAt":  "2026-10-22T14:04:23.167885565Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

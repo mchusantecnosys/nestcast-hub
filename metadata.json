@@ -1,0 +1,6 @@
+{
+  "name": "NestCast Hub — Google Home Mini Controller",
+  "description": "Hub web domótico (Fase 0) para descubrir, controlar y emparejar por Wi-Fi altavoces Google Home Mini y Nest Mini en red local.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
